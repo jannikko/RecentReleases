@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<form method="post" >
-<input type="text">
-<input type="submit">
-</form>
+{% if logged_in %}
+<h1>Welcome</h1>
+{% else %}
+<a href="{{ url_for('login') }}">Login with Spotify</a>
+{% endif %}
 {% endblock %}
