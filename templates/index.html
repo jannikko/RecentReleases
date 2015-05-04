@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
 {% if logged_in %}
-<h1>Welcome</h1>
+{% for artist in artists %}
+<p>{{ artist }}</p>
+{% endfor %}
+
 {% else %}
 <a href="{{ url_for('login') }}">Login with Spotify</a>
 {% endif %}
