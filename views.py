@@ -9,9 +9,9 @@ import urllib.parse
 
 
 app = Flask(__name__)
-app.secret_key = '\x89?N\xcdY\x07\x10Y\x84CZ\x19T\xcfx,\xf9 \xf4\xed\x0f\x17\x91\x0f'
+app.secret_key = 'xxx'
 client_id = '21037bf080ad4603ad6632c7538a3189'
-client_secret = '744eefcfb8c04c04ba27a1095624e0a6'
+client_secret = 'xxx'
 redirect_uri = 'http://localhost:8000/callback'
 state_key = 'spotify_auth_state'
 
