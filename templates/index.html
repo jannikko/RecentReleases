@@ -1,10 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
 {% if logged_in %}
-{% for artist in artists %}
-<p>{{ artist }}</p>
+{% for key, value in artists.items() %}
+<p>{{ key }} {{ value }}</p>
 {% endfor %}
-
 {% else %}
 <a href="{{ url_for('login') }}">Login with Spotify</a>
 {% endif %}
