@@ -1,16 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, make_response, session
+from artists import get_artists
+from requests import make_post_request, read_response, parse_json
 import flask
 import urllib.request
 import random
 import string
-import json
 import urllib.parse
 
 
 app = Flask(__name__)
-app.secret_key = 'Z\xd5\xd9\xd7\xc2\x12Ol1x\x05`\xe8\xe8\xd3\x9a}\x98\xd7e|\x89\x82\n'
+app.secret_key = 'xxx'
 client_id = '21037bf080ad4603ad6632c7538a3189'
-client_secret = 'efc7417b8dfc4dd885f1bb3eb68e6c22'
+client_secret = 'xxx'
 redirect_uri = 'http://localhost:8000/callback'
 state_key = 'spotify_auth_state'
 
@@ -29,55 +30,10 @@ def login():
     return response
 
 
-def query_saved_tracks_json(limit, offset):
-    tracks_query = build_tracks_query(limit, offset)
-    raw_tracks_response = make_get_request('https://api.spotify.com/v1/me/tracks/?', verb=tracks_query,
-                                           access_token=True)
-    tracks_response = read_response(raw_tracks_response)
-    tracks = parse_json(tracks_response)
-    return tracks
-
-
-def extract_artists_from_tracks_json(tracks_json):
-    artists = dict()
-    for item in tracks_json['items']:
-        for artist in item['track']['artists']:
-            artists[artist['id']] = artist['name']
-    return artists
-
-
-def get_all_artists():
-    limit = 50
-    offset = 0
-    artists = dict()
-    tracks_left = 0
-    while True:
-        if tracks_left > limit or not tracks_left:
-            # get the maximum amount
-            tracks_json = query_saved_tracks_json(limit, offset)
-            if not tracks_left:
-                tracks_left = tracks_json['total']
-            offset += limit
-            tracks_left -= limit
-            new_artists = extract_artists_from_tracks_json(tracks_json)
-            artists.update(new_artists)
-        else:
-            # get the left over artists
-            tracks_json = query_saved_tracks_json(tracks_left, offset)
-            new_artists = extract_artists_from_tracks_json(tracks_json)
-            artists.update(new_artists)
-            break
-    return artists
-
-
-def get_similar_artists(artists):
-    pass
-
-
 @app.route('/')
 def index():
     if 'access_token' in session:
-        artists = get_all_artists()
+        artists = get_artists()
         return render_template('index.html', logged_in=True, artists=artists)
     else:
         return render_template('index.html', logged_in=False)
@@ -109,65 +65,23 @@ def set_session(tokens):
     session['refresh_token'] = tokens['refresh_token']
 
 
-def read_response(encoded_response):
-    return encoded_response.read().decode('UTF-8')
-
-
-def parse_json(response):
-    return json.loads(response)
-
-
 def build_login_query(state):
-    login_query = {'response_type': 'code',
-                   'client_id': client_id,
-                   'scope': 'user-library-read',
-                   'redirect_uri': redirect_uri,
-                   'state': state
-                   }
-    return login_query
+    return {'response_type': 'code',
+            'client_id': client_id,
+            'scope': 'user-library-read',
+            'redirect_uri': redirect_uri,
+            'state': state
+            }
 
 
 def build_token_query(code):
-    token_query = {
+    return {
         'code': code,
         'grant_type': 'authorization_code',
         'redirect_uri': redirect_uri,
         'client_id': client_id,
         'client_secret': client_secret
     }
-    return token_query
-
-
-def build_tracks_query(limit, offset):
-    tracks_query = {
-        'limit': limit,
-        'offset': offset,
-    }
-    return tracks_query
-
-
-def make_post_request(endpoint, body, access_token=False):
-    urlencoded_query = urllib.parse.urlencode(body)
-    byte_query = urlencoded_query.encode('ASCII')
-    req = urllib.request.Request(endpoint, byte_query)
-    if access_token:
-        print(session['access_token'])
-        req.add_header('Authorization', session['access_token'])
-    response = urllib.request.urlopen(req)
-    return response
-
-
-def make_get_request(endpoint, verb=None, header=None, access_token=False):
-    if verb:
-        endpoint = endpoint + urllib.parse.urlencode(verb)
-    req = urllib.request.Request(endpoint)
-    if header:
-        for k, v in header:
-            req.add_header(k, v)
-    if access_token:
-        req.add_header('Authorization', session['access_token'])
-    response = urllib.request.urlopen(req)
-    return response
 
 
 '''

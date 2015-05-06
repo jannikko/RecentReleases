@@ -14,7 +14,7 @@ class testJson(unittest.TestCase):
     }
 
     def test_extract_artists_from_tracks_json_equals_expected_artists(self):
-        tracks_result = views.extract_artists_from_tracks_json(self.tracks_json)
+        tracks_result = views.extract_artists_from_tracks(self.tracks_json)
         print(tracks_result)
         self.assertDictEqual(self.expected_result, tracks_result)
 
