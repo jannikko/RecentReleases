@@ -2,11 +2,16 @@ from urllib.error import HTTPError
 import urllib.parse
 import urllib.request
 from flask import session
+import http.client
 import json
 
 
 def read_response(encoded_response):
-    return encoded_response.read().decode('UTF-8')
+    try:
+        contents = encoded_response.read()
+    except http.client.IncompleteRead as e:
+        contents = encoded_response.partial()
+    return contents.decode('UTF-8')
 
 
 def parse_json(response):

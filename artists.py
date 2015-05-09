@@ -2,6 +2,8 @@ from requests import make_get_request, read_response, parse_json
 from flask import session
 from concurrent.futures import ThreadPoolExecutor
 import urllib.request
+import datetime
+import re
 
 
 class ArtistsIterator():
@@ -56,16 +58,16 @@ def query_albums(artist_id):
 
 
 def get_artists_albums(artists):
-    artist_albums = dict()
+    artist_albums = list()
     for artist_id in artists.keys():
         albums_json = query_albums(artist_id)
         albums = extract_albums_from_json(albums_json)
-        artist_albums[artist_id] = albums
+        artist_albums += albums
     return artist_albums
 
 
 def extract_albums_from_json(albums):
-    return [album['id'] for album in albums]
+    return [item['id'] for item in albums['items']]
 
 
 def extract_artists_from_tracks_json(tracks):
@@ -75,3 +77,30 @@ def extract_artists_from_tracks_json(tracks):
             artists[artist['id']] = artist['name']
     return artists
 
+
+def get_recent_releases(albums):
+    recent_release_set = set()
+    start = 0
+    for end in range(20, len(albums), 20):
+        albums_info = query_albums_info(albums[start:end])
+        recent_release_set.update(filter_recent_releases(albums_info))
+        start = end
+    return recent_release_set
+
+
+def query_albums_info(albums):
+    if len(albums) <= 20:
+        list_string = ",".join(albums)
+        verb = {
+            'ids': list_string
+        }
+        response = make_get_request('https://api.spotify.com/v1/albums?', verb)
+        response = read_response(response)
+        return parse_json(response)
+
+
+def filter_recent_releases(albums_info):
+    return ((album['name']) for album in albums_info['albums'] if
+            re.match('^\d\d\d\d-\d\d-\d\d$', album['release_date'])
+            and datetime.datetime.strptime(album['release_date'],
+                                           '%Y-%m-%d') > datetime.datetime.now() - datetime.timedelta(14))
