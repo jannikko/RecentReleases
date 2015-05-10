@@ -1,9 +1,11 @@
 from requests import make_get_request, read_response, parse_json
 from flask import session
-from concurrent.futures import ThreadPoolExecutor
-import urllib.request
 import datetime
 import re
+import queue
+import concurrent.futures
+
+q = queue.Queue()
 
 
 class ArtistsIterator():
@@ -79,13 +81,20 @@ def extract_artists_from_tracks_json(tracks):
 
 
 def get_recent_releases(albums):
-    recent_release_set = set()
+    releases = set()
     start = 0
-    for end in range(20, len(albums), 20):
-        albums_info = query_albums_info(albums[start:end])
-        recent_release_set.update(filter_recent_releases(albums_info))
-        start = end
-    return recent_release_set
+    counter = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+        for end in range(20, len(albums), 20):
+            executor.submit(query_albums_info, albums[start:end])
+            start = end
+            counter += 1
+        for i in range(counter):
+            try:
+                releases.update(filter_recent_releases(q.get(timeout=5)))
+            except queue.Empty as e:
+                continue
+    return releases
 
 
 def query_albums_info(albums):
@@ -96,7 +105,7 @@ def query_albums_info(albums):
         }
         response = make_get_request('https://api.spotify.com/v1/albums?', verb)
         response = read_response(response)
-        return parse_json(response)
+        q.put(parse_json(response))
 
 
 def filter_recent_releases(albums_info):
@@ -104,3 +113,11 @@ def filter_recent_releases(albums_info):
             re.match('^\d\d\d\d-\d\d-\d\d$', album['release_date'])
             and datetime.datetime.strptime(album['release_date'],
                                            '%Y-%m-%d') > datetime.datetime.now() - datetime.timedelta(14))
+
+
+def chain_functions(*args, parameter):
+    result = args[0](parameter)
+    if len(args) > 1:
+        for function in args:
+            result = function(result)
+    return result

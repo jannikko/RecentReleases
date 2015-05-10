@@ -45,10 +45,13 @@ def index():
         else:
             t = datetime.datetime.now()
             artists = get_artists()
+            print('get_artists()' + str((datetime.datetime.now() - t).seconds))
+            t = datetime.datetime.now()
             albums = get_artists_albums(artists)
+            print('get_artists_albums()' + str((datetime.datetime.now() - t).seconds))
+            t = datetime.datetime.now()
             recent_releases = get_recent_releases(albums)
-            print((datetime.datetime.now() - t).seconds)
-            print(recent_releases)
+            print('get_recent_releases()' + str((datetime.datetime.now() - t).seconds))
         return render_template('index.html', logged_in=True, recent_releases=recent_releases)
     else:
         return render_template('index.html', logged_in=False)
