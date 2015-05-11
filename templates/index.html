@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
-{% block content %}
+
+{% block head %}
 {% if logged_in %}
-{% for release in recent_releases %}
-<p>{{ release}}</p>
-{% endfor %}
-{% else %}
+<script src="{{ url_for('static', filename='api_requests.js') }}"></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if not logged_in %}
 <a href="{{ url_for('login') }}">Login with Spotify</a>
 {% endif %}
 {% endblock %}

@@ -1,5 +1,5 @@
-from flask import Flask, render_template, redirect, url_for, make_response, session
-from artists import get_artists, get_artists_albums, get_recent_releases
+from flask import Flask, render_template, redirect, url_for, make_response, session, jsonify
+from artists import get_artists
 from requests import make_post_request, read_response, parse_json
 import flask
 import urllib.request
@@ -8,7 +8,6 @@ import string
 import urllib.parse
 import base64
 import datetime
-import time
 
 app = Flask(__name__)
 app.secret_key = 'XXX'
@@ -42,19 +41,14 @@ def index():
     if 'access_token' in session:
         if session['expires_in'] < datetime.datetime.now():
             return redirect(url_for('refresh_token'))
-        else:
-            t = datetime.datetime.now()
-            artists = get_artists()
-            print('get_artists()' + str((datetime.datetime.now() - t).seconds))
-            t = datetime.datetime.now()
-            albums = get_artists_albums(artists)
-            print('get_artists_albums()' + str((datetime.datetime.now() - t).seconds))
-            t = datetime.datetime.now()
-            recent_releases = get_recent_releases(albums)
-            print('get_recent_releases()' + str((datetime.datetime.now() - t).seconds))
-        return render_template('index.html', logged_in=True, recent_releases=recent_releases)
+        return render_template('index.html', logged_in=True)
     else:
         return render_template('index.html', logged_in=False)
+
+
+@app.route('/get_artists')
+def artists_json():
+    return jsonify(get_artists())
 
 
 @app.route('/callback')

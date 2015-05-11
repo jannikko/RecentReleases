@@ -1,7 +1,5 @@
-from urllib.error import HTTPError
 import urllib.parse
 import urllib.request
-from flask import session
 import http.client
 import json
 
