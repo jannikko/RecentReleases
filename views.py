@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, make_response, session, jsonify
+from flask import Flask, render_template, redirect, url_for, make_response, session
 from artists import get_artists
 from requests import make_post_request, read_response, parse_json
 import flask
@@ -8,6 +8,7 @@ import string
 import urllib.parse
 import base64
 import datetime
+import json
 
 app = Flask(__name__)
 app.secret_key = 'XXX'
@@ -48,7 +49,7 @@ def index():
 
 @app.route('/get_artists')
 def artists_json():
-    return jsonify(get_artists())
+    return json.dumps(list(get_artists()))
 
 
 @app.route('/callback')

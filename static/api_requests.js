@@ -1,33 +1,27 @@
+var albums_queue = [];
+var releases_queue = [];
+var album_requests = 0;
+var releases_requests = 0;
+
+
 $.getJSON('get_artists', function (artists) {
-    if (artists) {
-        var albums = get_artists_albums(artists);
-        var recent_releases = get_recent_releases(albums);
+    for (var i = 0; i < artists.length; i++) {
+        album_requests++;
+        $.ajax({
+            type: 'GET',
+            url: 'https://api.spotify.com/v1/artists/' + artists[i] + '/albums',
+            success: albums_request_success
+        });
     }
 });
 
-function get_artists_albums(artists) {
-    var artist_albums = [];
-    for (var artist_id in artists) {
-        var albums = query_albums(artist_id);
-        if (albums) {
-            albums = extract_albums_from_json(albums);
-            artist_albums = artist_albums.concat(albums)
-        }
-    }
-    return artist_albums;
-}
 
-function query_albums(artist_id) {
-    var albums;
-    $.ajax({
-        type: 'GET',
-        async: false,
-        url: 'https://api.spotify.com/v1/artists/' + artist_id + '/albums',
-        success: function (data) {
-            albums = data;
-        }
-    });
-    return albums;
+function albums_request_success(data) {
+    var albums = extract_albums_from_json(data);
+    albums_queue = albums_queue.concat(albums);
+    if (--album_requests === 0) {
+        get_recent_releases();
+    }
 }
 
 function extract_albums_from_json(albums_json) {
@@ -39,16 +33,45 @@ function extract_albums_from_json(albums_json) {
     return albums;
 }
 
-function get_recent_releases(albums) {
-    var recent_releases = new Array();
+function get_recent_releases() {
     var start = 0;
-    for (var end = 20; end < albums.length; end += 20) {
-        var album_info = query_albums_info(albums.slice(start, end));
-        recent_releases = recent_releases.concat(filter_recent_releases(album_info));
+    for (var end = 20; end < albums_queue.length; end += 20) {
+        releases_requests++;
+        var sliced = albums_queue.slice(start, end);
+        var albums_string = sliced.join(',');
+        $.ajax({
+            type: 'GET',
+            url: 'https://api.spotify.com/v1/albums',
+            data: {ids: albums_string},
+            success: releases_request_success
+        });
         start = end;
     }
-    return recent_releases;
 }
+
+function releases_request_success(data) {
+    var releases = filter_recent_releases(data);
+    for (var i = 0; i < releases.length; i++) {
+        if ($.inArray(releases[i], releases_queue) === -1) {
+            releases_queue.push(releases[i]);
+        }
+    }
+    if (--releases_requests === 0) {
+        for (var i = 0; i < releases_queue.length; i++) {
+            var releases_div = document.getElementById('releases');
+            var p = document.createElement("p");
+            var name = document.createTextNode(releases_queue[i]['name']);
+            var img = document.createElement("img");
+            img.setAttribute('src', releases_queue[i]['cover']);
+            p.appendChild(name);
+            p.appendChild(img);
+            releases_div.appendChild(p);
+        }
+        console.log(releases_queue);
+    }
+}
+
+
 function filter_recent_releases(albums_info) {
     var current_date = new Date();
     var recently_released_albums = [];
@@ -59,26 +82,15 @@ function filter_recent_releases(albums_info) {
         if (parts.length == 3) {
             var release_date = new Date(parts[0], parts[1], parts[2]);
             if (release_date > current_date - 14) {
-                recently_released_albums.push(album['name']);
+                var album_obj = {
+                    'name': album['name'],
+                    'cover': album['images'][1]['url']
+                };
+                recently_released_albums.push(album_obj);
             }
         }
     }
-    ;
     return recently_released_albums;
 }
 
 
-function query_albums_info(albums) {
-    var albums_string = albums.join(',');
-    var albums_data;
-    $.ajax({
-        type: 'GET',
-        async: false,
-        url: 'https://api.spotify.com/v1/albums',
-        data: {ids: albums_string},
-        success: function (data) {
-            albums_data = data;
-        }
-    });
-    return albums_data;
-}

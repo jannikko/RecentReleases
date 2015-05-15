@@ -1,5 +1,6 @@
 from requests import make_get_request, read_response, parse_json
 from flask import session
+import itertools
 
 
 class ArtistsIterator():
@@ -24,10 +25,7 @@ class ArtistsIterator():
 
 
 def get_artists():
-    artists = dict()
-    for artist in ArtistsIterator():
-        artists.update(artist)
-    return artists
+    return set(itertools.chain(*ArtistsIterator()))
 
 
 def query_tracks(limit, offset):
@@ -37,16 +35,13 @@ def query_tracks(limit, offset):
     request_header = {
         'Authorization': session['access_token']
     }
-    response = make_get_request('https://api.spotify.com/v1/me/tracks/?', verb=request_verb,
+    response = make_get_request('https://api.spotify.com/v1/me/tracks', verb=request_verb,
                                 header=request_header)
     response = read_response(response)
-    tracks = parse_json(response)
-    return tracks
+    return parse_json(response)
 
 
 def extract_artists_from_tracks_json(tracks):
-    artists = dict()
     for item in tracks['items']:
         for artist in item['track']['artists']:
-            artists[artist['id']] = artist['name']
-    return artists
+            yield artist['id']

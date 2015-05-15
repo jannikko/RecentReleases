@@ -23,16 +23,14 @@ def make_post_request(endpoint, body, header=None):
     if header:
         for k, v in header.items():
             req.add_header(k, v)
-    response = urllib.request.urlopen(req)
-    return response
+    return urllib.request.urlopen(req)
 
 
 def make_get_request(endpoint, verb=None, header=None):
     if verb:
-        endpoint = endpoint + urllib.parse.urlencode(verb)
+        endpoint = endpoint + '?' + urllib.parse.urlencode(verb)
     req = urllib.request.Request(endpoint)
     if header:
         for k, v in header.items():
             req.add_header(k, v)
-    response = urllib.request.urlopen(req)
-    return response
+    return urllib.request.urlopen(req)
