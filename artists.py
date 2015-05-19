@@ -44,4 +44,6 @@ def query_tracks(limit, offset):
 def extract_artists_from_tracks_json(tracks):
     for item in tracks['items']:
         for artist in item['track']['artists']:
-            yield artist['id']
+            yield (artist['id'])
+
+

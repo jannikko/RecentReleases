@@ -3,12 +3,32 @@
 {% block head %}
 {% if logged_in %}
 <script src="{{ url_for('static', filename='api_requests.js') }}"></script>
+<style type="text/css">
+
+.post-container{
+    margin: 20px 20px 0 0;
+    width:600px;
+    overflow:hidden;
+}
+
+.post-thumb img {
+    float: left;
+    clear:left;
+    width:150px;
+    height:150px;
+}
+.post-conten{
+    float:right;
+}
+
+
+</style>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 {% if logged_in %}
-<div id="releases"></div>
+<div id="releases_container"></div>
 {% else %}
 <a href="{{ url_for('login') }}">Login with Spotify</a>
 {% endif %}

@@ -4,6 +4,10 @@ var album_requests = 0;
 var releases_requests = 0;
 
 
+String.prototype.capitalizeFirstLetter = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
 $.getJSON('get_artists', function (artists) {
     for (var i = 0; i < artists.length; i++) {
         album_requests++;
@@ -18,7 +22,11 @@ $.getJSON('get_artists', function (artists) {
 
 function albums_request_success(data) {
     var albums = extract_albums_from_json(data);
-    albums_queue = albums_queue.concat(albums);
+    for (var i = 0; i < albums.length; i++) {
+        if ($.inArray(albums[i], albums_queue) === -1) {
+            albums_queue.push(albums[i]);
+        }
+    }
     if (--album_requests === 0) {
         get_recent_releases();
     }
@@ -50,25 +58,34 @@ function get_recent_releases() {
 }
 
 function releases_request_success(data) {
-    var releases = filter_recent_releases(data);
-    for (var i = 0; i < releases.length; i++) {
-        if ($.inArray(releases[i], releases_queue) === -1) {
-            releases_queue.push(releases[i]);
-        }
-    }
+    releases_queue = releases_queue.concat(filter_recent_releases(data));
     if (--releases_requests === 0) {
+        var albums = [];
         for (var i = 0; i < releases_queue.length; i++) {
-            var releases_div = document.getElementById('releases');
-            var p = document.createElement("p");
-            var name = document.createTextNode(releases_queue[i]['name']);
-            var img = document.createElement("img");
-            img.setAttribute('src', releases_queue[i]['cover']);
-            p.appendChild(name);
-            p.appendChild(img);
-            releases_div.appendChild(p);
+            if ($.inArray(releases_queue[i]['name'].toLowerCase(), albums) === -1) {
+                albums.push(releases_queue[i]['name'].toLowerCase());
+                append_album_to_html(releases_queue[i]);
+            }
         }
-        console.log(releases_queue);
     }
+}
+
+function append_album_to_html(album) {
+    var releases_div = document.getElementById('releases_container');
+    var post_container = document.createElement("div");
+    post_container.setAttribute('class', 'post-container');
+    var post_thumb = document.createElement('div');
+    post_thumb.setAttribute('class', 'post-thumb');
+    var img = document.createElement("img");
+    img.setAttribute('src', album['cover']);
+    post_thumb.appendChild(img);
+    var post_content = document.createElement('div');
+    post_content.setAttribute('class', 'post_content');
+    var name = document.createTextNode(album['album_type'] + ': ' + album['artist'] + ' - ' + album['name']);
+    post_content.appendChild(name);
+    post_container.appendChild(post_thumb);
+    post_container.appendChild(post_content);
+    releases_div.appendChild(post_container);
 }
 
 
@@ -82,7 +99,18 @@ function filter_recent_releases(albums_info) {
         if (parts.length == 3) {
             var release_date = new Date(parts[0], parts[1], parts[2]);
             if (release_date > current_date - 14) {
+                var artists = [];
+                for (var x = 0; x < album['artists'].length; x++) {
+                    artists.push(album['artists'][x]['name']);
+                }
+                if (artists.length > 5) {
+                    artists = "Various Artists"
+                } else {
+                    artists = artists.join(', ')
+                }
                 var album_obj = {
+                    'album_type': album['album_type'].capitalizeFirstLetter(),
+                    'artist': artists,
                     'name': album['name'],
                     'cover': album['images'][1]['url']
                 };
