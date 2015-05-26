@@ -70,22 +70,33 @@ function releases_request_success(data) {
     }
 }
 
+
 function append_album_to_html(album) {
     var releases_div = document.getElementById('releases_container');
-    var post_container = document.createElement("div");
-    post_container.setAttribute('class', 'post-container');
-    var post_thumb = document.createElement('div');
-    post_thumb.setAttribute('class', 'post-thumb');
+    var post_row = document.createElement("div");
+    var post_col = document.createElement("div");
+    post_col.setAttribute('class', 'col-md-5');
+    post_row.setAttribute('class', 'row vertical-center-row post-container');
     var img = document.createElement("img");
     img.setAttribute('src', album['cover']);
-    post_thumb.appendChild(img);
+    post_col.appendChild(img);
     var post_content = document.createElement('div');
-    post_content.setAttribute('class', 'post_content');
+    post_content.setAttribute('class', 'col-md-7 center');
     var name = document.createTextNode(album['album_type'] + ': ' + album['artist'] + ' - ' + album['name']);
     post_content.appendChild(name);
-    post_container.appendChild(post_thumb);
-    post_container.appendChild(post_content);
-    releases_div.appendChild(post_container);
+
+    post_row.appendChild(post_col);
+        post_row.appendChild(post_content);
+    releases_div.appendChild(post_row);
+}
+
+function saveAll(callback) {
+    var dataArray = [], deferreds = [];
+    $.each(dataArray, function() {
+        deferreds.push( save() );
+    });
+
+    $.when.apply(window, deferreds).then(callback);
 }
 
 
