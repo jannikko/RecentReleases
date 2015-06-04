@@ -2,32 +2,48 @@ var albums_queue = [];
 var releases_queue = [];
 var album_requests = 0;
 var releases_requests = 0;
+var max_request_size = 20;
+var length;
 
-
-String.prototype.capitalizeFirstLetter = function() {
+String.prototype.capitalizeFirstLetter = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
+
 $.getJSON('get_artists', function (artists) {
-    for (var i = 0; i < artists.length; i++) {
-        album_requests++;
-        $.ajax({
-            type: 'GET',
-            url: 'https://api.spotify.com/v1/artists/' + artists[i] + '/albums',
-            success: albums_request_success
-        });
-    }
+    album_requests = artists.length;
+    get_artists(artists);
 });
 
 
-function albums_request_success(data) {
-    var albums = extract_albums_from_json(data);
-    for (var i = 0; i < albums.length; i++) {
-        if ($.inArray(albums[i], albums_queue) === -1) {
-            albums_queue.push(albums[i]);
-        }
+var i = 0;
+function get_artists(artists) {
+    if (i < artists.length) {
+        $.ajax({
+            type: 'GET',
+            url: 'https://api.spotify.com/v1/artists/' + artists[i] + '/albums',
+            success: function (data) {
+                var albums = extract_albums_from_json(data);
+                for (var i = 0; i < albums.length; i++) {
+                    if ($.inArray(albums[i], albums_queue) === -1) {
+                        albums_queue.push(albums[i]);
+                    }
+                }
+                albums_request_success();
+            },
+            error: function () {
+                --album_requests;
+            }
+
+        });
+        i++;
+        setTimeout(get_artists(artists), 500);
     }
+}
+
+function albums_request_success() {
     if (--album_requests === 0) {
+        releases_requests = Math.floor(albums_queue.length / max_request_size);
         get_recent_releases();
     }
 }
@@ -40,20 +56,24 @@ function extract_albums_from_json(albums_json) {
     }
     return albums;
 }
-
+var start = 0;
+var end = 20;
 function get_recent_releases() {
-    var start = 0;
-    for (var end = 20; end < albums_queue.length; end += 20) {
-        releases_requests++;
+    if (end < albums_queue.length) {
         var sliced = albums_queue.slice(start, end);
         var albums_string = sliced.join(',');
+        start = end;
+        end += 20;
         $.ajax({
             type: 'GET',
             url: 'https://api.spotify.com/v1/albums',
             data: {ids: albums_string},
-            success: releases_request_success
+            success: releases_request_success,
+            error: function () {
+                --releases_requests;
+            }
         });
-        start = end;
+        setTimeout(get_recent_releases(), 500);
     }
 }
 
@@ -86,17 +106,8 @@ function append_album_to_html(album) {
     post_content.appendChild(name);
 
     post_row.appendChild(post_col);
-        post_row.appendChild(post_content);
+    post_row.appendChild(post_content);
     releases_div.appendChild(post_row);
-}
-
-function saveAll(callback) {
-    var dataArray = [], deferreds = [];
-    $.each(dataArray, function() {
-        deferreds.push( save() );
-    });
-
-    $.when.apply(window, deferreds).then(callback);
 }
 
 
