@@ -3,16 +3,59 @@
 {% block head %}
 {% if logged_in %}
 <script src="{{ url_for('static', filename='js/api_requests.js') }}"></script>
+<style>
+    body {
+        width: 100%;
+    }
+
+    #releases_container {
+        width: 80%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto
+    }
+
+    .album {
+        display: table;
+        width: 100%;
+        height: 12em;
+        padding: 1em;
+    }
+
+    .album_image {
+        display: table-cell;
+        text-align: left;
+        float: left;
+        width: 60%;
+        height: 50%;
+    }
+
+    .album_description {
+        display: table-cell;
+        vertical-align: middle;
+        width: 40%;
+        text-align: center;
+    }
+</style>
 {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="container" id="releases_container">
+
 {% if logged_in %}
-{% else %}
-<form action="/login">
-<button class="btn btn-lg btn-success center-block" id="login">Log in with Spotify</button>
-</form>
-{% endif %}
+<select onchange="setDays()" id="time">
+    <option value="7">A Week Ago</option>
+    <option value="31">A Month Ago</option>
+    <option value="182">Half Year Ago</option>
+    <option value="365">A Year Ago</option>
+</select>
+    <img src="/static/img/ajax-loader.gif" id="loading_image">
+
+<div id="releases_container">
+    {% else %}
+    <form action="/login">
+        <button class="btn btn-lg btn-success center-block" id="login">Log in with Spotify</button>
+    </form>
+    {% endif %}
 </div>
 {% endblock %}

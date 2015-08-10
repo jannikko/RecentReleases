@@ -1,19 +1,39 @@
-var albums_queue = [];
-var releases_queue = [];
-var album_requests = 0;
-var releases_requests = 0;
+var albums_queue;
+var releases_queue;
+var album_requests;
+var releases_requests;
 var max_request_size = 20;
 var length;
+var days = 14;
+
+var loading_image;
+var releases_div;
 
 String.prototype.capitalizeFirstLetter = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
 
-$.getJSON('get_artists', function (artists) {
-    album_requests = artists.length;
-    get_artists(artists);
-});
+function setDays() {
+    days = parseInt(document.getElementById('time').value);
+    loading_image.style.visibility = "visible";
+    reload();
+}
+
+function reload() {
+    releases_div.innerHTML = "";
+    i = 0;
+    start = 0;
+    end = 20;
+    albums_queue = [];
+    releases_queue = [];
+    album_requests = 0;
+    releases_requests = 0;
+    $.getJSON('get_artists', function (artists) {
+        album_requests = artists.length;
+        get_artists(artists);
+    });
+}
 
 
 var i = 0;
@@ -34,7 +54,6 @@ function get_artists(artists) {
             error: function () {
                 --album_requests;
             }
-
         });
         i++;
         setTimeout(get_artists(artists), 500);
@@ -56,6 +75,7 @@ function extract_albums_from_json(albums_json) {
     }
     return albums;
 }
+
 var start = 0;
 var end = 20;
 function get_recent_releases() {
@@ -81,6 +101,7 @@ function releases_request_success(data) {
     releases_queue = releases_queue.concat(filter_recent_releases(data));
     if (--releases_requests === 0) {
         var albums = [];
+        loading_image.style.visibility = "hidden";
         for (var i = 0; i < releases_queue.length; i++) {
             if ($.inArray(releases_queue[i]['name'].toLowerCase(), albums) === -1) {
                 albums.push(releases_queue[i]['name'].toLowerCase());
@@ -92,27 +113,31 @@ function releases_request_success(data) {
 
 
 function append_album_to_html(album) {
-    var releases_div = document.getElementById('releases_container');
     var post_row = document.createElement("div");
     var post_col = document.createElement("div");
-    post_col.setAttribute('class', 'col-md-5');
-    post_row.setAttribute('class', 'row vertical-center-row post-container');
     var img = document.createElement("img");
     img.setAttribute('src', album['cover']);
     post_col.appendChild(img);
     var post_content = document.createElement('div');
-    post_content.setAttribute('class', 'col-md-7 center');
     var name = document.createTextNode(album['album_type'] + ': ' + album['artist'] + ' - ' + album['name']);
+    var uri = document.createElement("a");
+    uri.setAttribute('href', album['uri']);
+    uri.innerHTML = "Open in Spotify";
+    post_col.setAttribute('class', 'album_image');
     post_content.appendChild(name);
-
+    post_content.appendChild(document.createElement("br"));
+    post_content.appendChild(uri);
+    post_content.setAttribute('class', 'album_description');
     post_row.appendChild(post_col);
     post_row.appendChild(post_content);
+    post_row.setAttribute('class', 'album');
     releases_div.appendChild(post_row);
 }
 
 
 function filter_recent_releases(albums_info) {
     var current_date = new Date();
+    current_date.setDate(current_date.getDate() - days);
     var recently_released_albums = [];
     var albums_list = albums_info['albums'];
     for (var i = 0; i < albums_list.length; i++) {
@@ -120,7 +145,7 @@ function filter_recent_releases(albums_info) {
         var parts = album['release_date'].split('-');
         if (parts.length == 3) {
             var release_date = new Date(parts[0], parts[1], parts[2]);
-            if (release_date > current_date - 14) {
+            if (release_date > current_date) {
                 var artists = [];
                 for (var x = 0; x < album['artists'].length; x++) {
                     artists.push(album['artists'][x]['name']);
@@ -131,10 +156,12 @@ function filter_recent_releases(albums_info) {
                     artists = artists.join(', ')
                 }
                 var album_obj = {
+                    'id': album['id'],
                     'album_type': album['album_type'].capitalizeFirstLetter(),
                     'artist': artists,
                     'name': album['name'],
-                    'cover': album['images'][1]['url']
+                    'cover': album['images'][1]['url'],
+                    'uri': album['uri']
                 };
                 recently_released_albums.push(album_obj);
             }
@@ -143,4 +170,9 @@ function filter_recent_releases(albums_info) {
     return recently_released_albums;
 }
 
+$(document).ready(function () {
+    loading_image = document.getElementById("loading_image");
+    releases_div = document.getElementById('releases_container');
+    reload();
+});
 

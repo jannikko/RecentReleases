@@ -3,7 +3,7 @@ from flask import session
 import itertools
 
 
-class ArtistsIterator():
+class ArtistsIterator:
     def __iter__(self):
         self.first_query = query_tracks(50, 0)
         self.first_iteration = True
@@ -45,5 +45,3 @@ def extract_artists_from_tracks_json(tracks):
     for item in tracks['items']:
         for artist in item['track']['artists']:
             yield (artist['id'])
-
-
