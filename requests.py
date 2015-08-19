@@ -11,11 +11,6 @@ def read_response(encoded_response):
         contents = encoded_response.partial()
     return contents.decode('UTF-8')
 
-
-def parse_json(response):
-    return json.loads(response)
-
-
 def make_post_request(endpoint, body, header=None):
     urlencoded_query = urllib.parse.urlencode(body)
     byte_query = urlencoded_query.encode('ASCII')

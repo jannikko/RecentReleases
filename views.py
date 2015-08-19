@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, make_response, session
 from artists import get_artists
-from requests import make_post_request, read_response, parse_json
+from requests import make_post_request, read_response
 import flask
 import urllib.request
 import random
@@ -72,7 +72,7 @@ def authenticate():
         raw_token_response = make_post_request('https://accounts.spotify.com/api/token', token_query)
         if raw_token_response.getcode() == 200:
             token_response = read_response(raw_token_response)
-            tokens = parse_json(token_response)
+            tokens = json.loads(token_response)
             set_session(tokens)
             return client_response
         else:
@@ -92,7 +92,7 @@ def refresh_token():
     }
     response = make_post_request('https://accounts.spotify.com/api/token', request_body, request_header)
     response = read_response(response)
-    tokens = parse_json(response)
+    tokens = json.loads(response)
     set_session(tokens)
     return redirect(url_for('index'))
 
