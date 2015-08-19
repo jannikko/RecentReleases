@@ -11,9 +11,9 @@ import datetime
 import json
 
 app = Flask(__name__)
-app.secret_key = '\x89?N\xcdY\x07\x10Y\x84CZ\x19T\xcfx,\xf9 \xf4\xed\x0f\x17\x91\x0f'  # flask secret_key
+app.secret_key = 'XXX'  # flask secret_key
 CLIENT_ID = '21037bf080ad4603ad6632c7538a3189'  # Spotify API ID
-CLIENT_SECRET = '744eefcfb8c04c04ba27a1095624e0a6'  # Spotify API Secret
+CLIENT_SECRET = 'XXX'  # Spotify API Secret
 redirect_uri = 'http://localhost:8000/callback'
 state_key = 'spotify_auth_state'
 
