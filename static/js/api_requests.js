@@ -55,17 +55,18 @@ function get_artists(artists) {
             error: function () {
                 --album_requests;
                 check_albums_request();
-            },
-            timeout: 3000
+            }
         });
         i++;
-        setTimeout(get_artists(artists), 500);
+        setTimeout(function() {
+    get_artists(artists);
+}, 5);
     }
 }
 
 function check_albums_request() {
     if (album_requests === 0) {
-        releases_requests = albums_queue.length / max_request_size - 1;
+        releases_requests = Math.floor(albums_queue.length / max_request_size);
         get_recent_releases();
     }
 }
@@ -99,15 +100,14 @@ function get_recent_releases() {
             error: function () {
                 --releases_requests;
                 check_releases_requests();
-            },
-            timeout: 3000
+            }
         });
-        setTimeout(get_recent_releases(), 500);
+        setTimeout(get_recent_releases, 5);
     }
 }
 
 function check_releases_requests() {
-    if (releases_requests === 0) {
+    if (releases_requests <= 0) {
         var albums = [];
         loading_image.style.visibility = "hidden";
         for (var i = 0; i < releases_queue.length; i++) {
