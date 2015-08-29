@@ -4,7 +4,7 @@ var album_requests;
 var releases_requests;
 var max_request_size = 20;
 var length;
-var days = 14;
+var days = 7;
 
 var loading_image;
 var releases_div;
@@ -30,6 +30,7 @@ function reload() {
     album_requests = 0;
     releases_requests = 0;
     $.getJSON('get_artists', function (artists) {
+        console.log(artists);
         album_requests = artists.length;
         get_artists(artists);
     });
@@ -152,8 +153,9 @@ function filter_recent_releases(albums_info) {
         var album = albums_list[i];
         var parts = album['release_date'].split('-');
         if (parts.length == 3) {
-            var release_date = new Date(parts[0], parts[1], parts[2]);
+            var release_date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             if (release_date > current_date) {
+                console.log(release_date + " : " + current_date);
                 var artists = [];
                 for (var x = 0; x < album['artists'].length; x++) {
                     artists.push(album['artists'][x]['name']);
