@@ -49,19 +49,22 @@ function get_artists(artists) {
                         albums_queue.push(albums[i]);
                     }
                 }
-                albums_request_success();
+                --album_requests;
+                check_albums_request();
             },
             error: function () {
                 --album_requests;
-            }
+                check_albums_request();
+            },
+            timeout: 3000
         });
         i++;
         setTimeout(get_artists(artists), 500);
     }
 }
 
-function albums_request_success() {
-    if (--album_requests === 0) {
+function check_albums_request() {
+    if (album_requests === 0) {
         releases_requests = albums_queue.length / max_request_size - 1;
         get_recent_releases();
     }
