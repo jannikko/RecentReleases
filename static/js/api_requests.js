@@ -62,7 +62,7 @@ function get_artists(artists) {
 
 function albums_request_success() {
     if (--album_requests === 0) {
-        releases_requests = Math.floor(albums_queue.length / max_request_size);
+        releases_requests = albums_queue.length / max_request_size - 1;
         get_recent_releases();
     }
 }
@@ -88,18 +88,23 @@ function get_recent_releases() {
             type: 'GET',
             url: 'https://api.spotify.com/v1/albums',
             data: {ids: albums_string},
-            success: releases_request_success,
+            success: function (data) {
+                releases_queue = releases_queue.concat(filter_recent_releases(data));
+                --releases_requests;
+                check_releases_requests();
+            },
             error: function () {
                 --releases_requests;
-            }
+                check_releases_requests();
+            },
+            timeout: 3000
         });
         setTimeout(get_recent_releases(), 500);
     }
 }
 
-function releases_request_success(data) {
-    releases_queue = releases_queue.concat(filter_recent_releases(data));
-    if (--releases_requests === 0) {
+function check_releases_requests() {
+    if (releases_requests === 0) {
         var albums = [];
         loading_image.style.visibility = "hidden";
         for (var i = 0; i < releases_queue.length; i++) {

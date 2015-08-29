@@ -24,6 +24,9 @@ def get_random_number(length):
 
 @app.route('/login')
 def login():
+    #  The state can be useful for correlating requests and responses. Because your redirect_uri can be guessed,
+    #  using a state value can increase your assurance that an incoming connection is the result of an
+    #  authentication request, security measure against cross-site request forgery
     state = get_random_number(16)
     login_query = {'response_type': 'code',
                    'client_id': CLIENT_ID,

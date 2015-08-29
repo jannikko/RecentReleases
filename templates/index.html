@@ -3,16 +3,22 @@
 {% block head %}
 {% if logged_in %}
 <script src="{{ url_for('static', filename='js/api_requests.js') }}"></script>
+{% endif %}
 <style>
     body {
         width: 100%;
+    }
+
+    #info{
+        text-align:center;
+        margin-bottom: 1em;
     }
 
     #releases_container {
         width: 80%;
         display: block;
         margin-left: auto;
-        margin-right: auto
+        margin-right: auto;
     }
 
     .album {
@@ -37,7 +43,6 @@
         text-align: center;
     }
 </style>
-{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -53,6 +58,9 @@
 
 <div id="releases_container">
     {% else %}
+    <div id="info"> This application searches your spotify library (not playlists)
+    for artists and lists recently released singles and albums.
+</div>
     <form action="/login">
         <button class="btn btn-lg btn-success center-block" id="login">Log in with Spotify</button>
     </form>
