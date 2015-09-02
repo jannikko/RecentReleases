@@ -61,7 +61,7 @@ function get_artists(artists) {
         artist_pointer++;
         setTimeout(function() {
     get_artists(artists);
-}, 5);
+}, 10);
     }
 }
 
@@ -103,7 +103,7 @@ function get_recent_releases() {
                 check_releases_requests();
             }
         });
-        setTimeout(get_recent_releases, 5);
+        setTimeout(get_recent_releases, 200);
     }
 }
 
