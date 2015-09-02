@@ -42,20 +42,29 @@
         width: 40%;
         text-align: center;
     }
+
+    #loading_container{
+        text-align: center;
+    }
+    #loading_container > img{
+        padding: 1em;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 
 {% if logged_in %}
-<select onchange="setDays()" id="time">
+<div id="loading_container">
+    <select onchange="setDays()" id="time">
     <option value="7">A Week Ago</option>
     <option value="31">A Month Ago</option>
-    <option value="182">Half Year Ago</option>
+    <option value="182">Half A Year Ago</option>
     <option value="365">A Year Ago</option>
 </select>
+    <br>
     <img src="/static/img/ajax-loader.gif" id="loading_image">
-
+</div>
 <div id="releases_container">
     {% else %}
     <div id="info"> This application searches your spotify library (not playlists)

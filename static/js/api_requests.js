@@ -16,7 +16,7 @@ String.prototype.capitalizeFirstLetter = function () {
 
 function setDays() {
     days = parseInt(document.getElementById('time').value);
-    loading_image.style.visibility = "visible";
+    loading_image.style.display = "inline";
     reload();
 }
 
@@ -110,7 +110,7 @@ function get_recent_releases() {
 function check_releases_requests() {
     if (releases_requests <= 0) {
         var albums = [];
-        loading_image.style.visibility = "hidden";
+        loading_image.style.display = "none";
         for (var i = 0; i < releases_queue.length; i++) {
             if ($.inArray(releases_queue[i]['name'].toLowerCase(), albums) === -1) {
                 albums.push(releases_queue[i]['name'].toLowerCase());
