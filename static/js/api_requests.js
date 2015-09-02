@@ -22,13 +22,13 @@ function setDays() {
 
 function reload() {
     releases_div.innerHTML = "";
-    i = 0;
-    start = 0;
-    end = 20;
-    albums_queue = [];
-    releases_queue = [];
+    artist_pointer = 0;
     album_requests = 0;
     releases_requests = 0;
+    albums_queue = [];
+    releases_queue = [];
+    start = 0;
+    end = 20;
     $.getJSON('get_artists', function (artists) {
         console.log(artists);
         album_requests = artists.length;
@@ -37,12 +37,12 @@ function reload() {
 }
 
 
-var i = 0;
+var artist_pointer = 0;
 function get_artists(artists) {
-    if (i < artists.length) {
+    if (artist_pointer < artists.length) {
         $.ajax({
             type: 'GET',
-            url: 'https://api.spotify.com/v1/artists/' + artists[i] + '/albums',
+            url: 'https://api.spotify.com/v1/artists/' + artists[artist_pointer] + '/albums',
             success: function (data) {
                 var albums = extract_albums_from_json(data);
                 for (var i = 0; i < albums.length; i++) {
@@ -58,7 +58,7 @@ function get_artists(artists) {
                 check_albums_request();
             }
         });
-        i++;
+        artist_pointer++;
         setTimeout(function() {
     get_artists(artists);
 }, 5);
