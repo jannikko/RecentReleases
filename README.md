@@ -1,4 +1,4 @@
 # RecentReleases
 
-This is a Spotify Web-App that allows it to find all recent releases of artists that you have saved in your library (not playlists).
+This is a Spotify web application that lists recently released music, depending on the user’s personal library.
 At the moment it's running here: http://jannikko.pythonanywhere.com/
