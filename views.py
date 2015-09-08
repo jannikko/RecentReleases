@@ -24,9 +24,6 @@ def get_random_number(length):
 
 @app.route('/login')
 def login():
-    #  The state can be useful for correlating requests and responses. Because your redirect_uri can be guessed,
-    #  using a state value can increase your assurance that an incoming connection is the result of an
-    #  authentication request, security measure against cross-site request forgery
     state = get_random_number(16)
     login_query = {'response_type': 'code',
                    'client_id': CLIENT_ID,
@@ -88,14 +85,12 @@ def refresh_token():
         'grant_type': 'refresh_token',
         'refresh_token': session['refresh_token']
     }
-    client_credentials = CLIENT_ID + ':' + CLIENT_SECRET
-    client_credentials = client_credentials.encode('ascii')
+    client_credentials = (CLIENT_ID + ':' + CLIENT_SECRET).encode('ascii')
     request_header = {
         'Authorization': 'Basic ' + base64.b64encode(client_credentials).decode('ascii')
     }
     response = make_post_request('https://accounts.spotify.com/api/token', request_body, request_header)
-    response = read_response(response)
-    tokens = json.loads(response)
+    tokens = read_response(json.loads(response))
     set_session(tokens)
     return redirect(url_for('index'))
 
