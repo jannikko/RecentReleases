@@ -90,7 +90,7 @@ def refresh_token():
         'Authorization': 'Basic ' + base64.b64encode(client_credentials).decode('ascii')
     }
     response = make_post_request('https://accounts.spotify.com/api/token', request_body, request_header)
-    tokens = read_response(json.loads(response))
+    tokens = json.loads(read_response(response))
     set_session(tokens)
     return redirect(url_for('index'))
 
